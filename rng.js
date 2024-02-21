@@ -1,3 +1,9 @@
+/**
+ * Shamelessly stolen from https://stackoverflow.com/a/424445
+ * This is not my code, but it is borrowed and modified in good faith.
+ * I guess it goes under whatever license stackoverflow answers use?
+ */
+
 function RNG(seed) {
     // LCG using GCC's constants
     this.m = 0x80000000; // 2**31;
@@ -21,6 +27,8 @@ RNG.prototype.nextRange = function (start, end) {
     var randomUnder1 = this.nextInt() / this.m;
     return start + Math.floor(randomUnder1 * rangeSize);
 };
-RNG.prototype.choice = function (array) {
-    return array[this.nextRange(0, array.length)];
+RNG.prototype.choice = function (array, startOffset = 0, endOffset = 0) {
+    if (startOffset < 0 || endOffset < 0) throw "Offsets have to be non-negative";
+    if(startOffset + endOffset >= array.length) return undefined;
+    return array[this.nextRange(0 + startOffset, array.length - endOffset)];
 };

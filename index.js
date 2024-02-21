@@ -1,7 +1,7 @@
 let lastRender = 0;
 let canvas;
 let ctx;
-const density = 30;
+const density = 20;
 let images;
 let tiles;
 const width = 800;
@@ -9,12 +9,69 @@ const height = 800;
 let tileWidth;
 let tileHeight;
 
+const Directions = {
+    NONE: 0,
+    UP: 1,
+    RIGHT: 2,
+    DOWN: 4,
+    LEFT: 8
+}
+
+const TileTypes = {
+    EMPTY: [0, 0, 0, 0],
+    T_JUNCTION: [1, 1, 0, 1],
+    LINE: [0, 1, 0, 1],
+    CORNER: [1, 1, 0, 0],
+    DEAD_END: [1, 0, 0, 0],
+    CROSS: [1, 1, 1, 1],
+    rotate: (type, times) => {
+        if (!(Array.isArray(type) && type.length == 4 && typeof times == 'number' && times >= 0)) throw "Something wrong here";
+        return [type[type.length - 1]].concat(type.slice(0, type.length - 1));
+    },
+    type: t => {
+        let sum = t.reduce((p,s) => p + s, 0) == 0;
+        switch(sum) {
+            case 0: return "EMPTY";
+            case 1: return "DEAD_END";
+            case 2: {
+                if(t[0]==t[2]) return "LINE";
+                return "CORNER";
+            }
+            case 3: return "T_JUNCTION";
+            case 4: return "CROSS";
+            default: return "MALFORMED";
+        }
+    }
+}
+
 const sideList = [
+    // Empty
     [0, 0, 0, 0],
+
+    // T junction
     [1, 1, 0, 1],
     [1, 1, 1, 0],
     [0, 1, 1, 1],
-    [1, 0, 1, 1]
+    [1, 0, 1, 1],
+
+    // Line
+    [0, 1, 0, 1],
+    [1, 0, 1, 0],
+
+    // Corner
+    [1, 1, 0, 0],
+    [0, 1, 1, 0],
+    [0, 0, 1, 1],
+    [1, 0, 0, 1],
+
+    // Dead end
+    [1, 0, 0, 0],
+    [0, 1, 0, 0],
+    [0, 0, 1, 0],
+    [0, 0, 0, 1],
+
+    // Cross
+    [1, 1, 1, 1]
 ];
 
 function setup() {
@@ -64,7 +121,7 @@ function draw() {
     for (let i = 0; i < density; ++i) {
         for (let j = 0; j < density; ++j) {
             if (tiles[i * density + j].isCollapsed()) {
-                console.log(JSON.stringify(tiles[i * density + j]));
+                //console.log(JSON.stringify(tiles[i * density + j]));
                 let image = images[tiles[i * density + j].value];
                 image.draw(ctx, j * tileWidth, i * tileHeight, tileWidth, tileHeight);
             }
@@ -74,15 +131,39 @@ function draw() {
 
 function setupImages() {
     images = [];
-    for (let i = 0; i < 2; ++i) {
-        let image = new TileImage(`images/${i}.png`);
-        images.push(image);
-    }
+
+    images.push(new TileImage(`images/${0}.png`, TileTypes.EMPTY));
+
+    images.push(new TileImage(`images/${1}.png`, TileTypes.T_JUNCTION));
     for (let i = 0; i < 3; ++i) {
         let image = images[images.length - 1].clone();
         image.rotation += Math.PI / 2;
+        image.sides = TileTypes.rotate(image.sides, 1);
         images.push(image);
     }
+
+    images.push(new TileImage(`images/${2}.png`, TileTypes.LINE));
+    images.push(images[images.length - 1].clone());
+    images[images.length - 1].rotation += Math.PI / 2;
+    images[images.length - 1].sides = TileTypes.rotate(images[images.length - 1].sides, 1);
+
+    images.push(new TileImage(`images/${3}.png`, TileTypes.CORNER));
+    for (let i = 0; i < 3; ++i) {
+        let image = images[images.length - 1].clone();
+        image.rotation += Math.PI / 2;
+        image.sides = TileTypes.rotate(image.sides, 1);
+        images.push(image);
+    }
+
+    images.push(new TileImage(`images/${4}.png`, TileTypes.DEAD_END));
+    for (let i = 0; i < 3; ++i) {
+        let image = images[images.length - 1].clone();
+        image.rotation += Math.PI / 2;
+        image.sides = TileTypes.rotate(image.sides, 1);
+        images.push(image);
+    }
+
+    images.push(new TileImage(`images/${5}.png`, TileTypes.CROSS));
 }
 
 function setupTiles() {
@@ -103,7 +184,7 @@ function checkNeighbours(tile, recurse = false) {
             if (neighbour.possibleValues.length == 1) {
                 for (let value of [...possibleValues]) {
                     value = parseInt(value);
-                    if (sideList[neighbour.possibleValues[0]][2] != sideList[value][0]) {
+                    if (images[neighbour.possibleValues[0]].sides[2] != images[value].sides[0]) {
                         possibleValues.splice(possibleValues.indexOf(value), 1);
                     }
                 }
@@ -118,7 +199,7 @@ function checkNeighbours(tile, recurse = false) {
             if (neighbour.possibleValues.length == 1) {
                 for (let value of [...possibleValues]) {
                     value = parseInt(value);
-                    if (sideList[neighbour.possibleValues[0]][3] != sideList[value][1]) {
+                    if (images[neighbour.possibleValues[0]].sides[3] != images[value].sides[1]) {
                         possibleValues.splice(possibleValues.indexOf(value), 1);
                     }
                 }
@@ -133,7 +214,7 @@ function checkNeighbours(tile, recurse = false) {
             if (neighbour.possibleValues.length == 1) {
                 for (let value of [...possibleValues]) {
                     value = parseInt(value);
-                    if (sideList[neighbour.possibleValues[0]][0] != sideList[value][2]) {
+                    if (images[neighbour.possibleValues[0]].sides[0] != images[value].sides[2]) {
                         possibleValues.splice(possibleValues.indexOf(value), 1);
                     }
                 }
@@ -148,7 +229,7 @@ function checkNeighbours(tile, recurse = false) {
             if (neighbour.possibleValues.length == 1) {
                 for (let value of [...possibleValues]) {
                     value = parseInt(value);
-                    if (sideList[neighbour.possibleValues[0]][1] != sideList[value][3]) {
+                    if (images[neighbour.possibleValues[0]].sides[1] != images[value].sides[3]) {
                         possibleValues.splice(possibleValues.indexOf(value), 1);
                     }
                 }
@@ -158,7 +239,7 @@ function checkNeighbours(tile, recurse = false) {
 }
 
 function evaluateNeighbours(tile) {
-    const sides = sideList[tile.value];
+    const sides = images[tile.value].sides;
 
     if (tile.index / density >= 1) {
         let neighbour = tiles[tile.index - density];
@@ -166,7 +247,7 @@ function evaluateNeighbours(tile) {
             let possibleValues = neighbour.possibleValues;
             for (let value of [...possibleValues]) {
                 value = parseInt(value);
-                if (sides[0] != sideList[value][2]) {
+                if (sides[0] != images[value].sides[2]) {
                     possibleValues.splice(possibleValues.indexOf(value), 1);
                 }
             }
@@ -180,7 +261,7 @@ function evaluateNeighbours(tile) {
             let possibleValues = neighbour.possibleValues;
             for (let value of [...possibleValues]) {
                 value = parseInt(value);
-                if (sides[1] != sideList[value][3]) {
+                if (sides[1] != images[value].sides[3]) {
                     possibleValues.splice(possibleValues.indexOf(value), 1);
                 }
             }
@@ -194,7 +275,7 @@ function evaluateNeighbours(tile) {
             let possibleValues = neighbour.possibleValues;
             for (let value of [...possibleValues]) {
                 value = parseInt(value);
-                if (sides[2] != sideList[value][0]) {
+                if (sides[2] != images[value].sides[0]) {
                     possibleValues.splice(possibleValues.indexOf(value), 1);
                 }
             }
@@ -208,7 +289,7 @@ function evaluateNeighbours(tile) {
             let possibleValues = neighbour.possibleValues;
             for (let value of [...possibleValues]) {
                 value = parseInt(value);
-                if (sides[3] != sideList[value][1]) {
+                if (sides[3] != images[value].sides[1]) {
                     possibleValues.splice(possibleValues.indexOf(value), 1);
                 }
             }

@@ -1,7 +1,8 @@
 class TileImage {
-    constructor (path, rotation = 0) {
+    constructor (path, sides, rotation = 0) {
         this.image = new Image();
         this.image.src = path;
+        this.sides = sides;
         this.rotation = rotation;
     }
 
@@ -14,6 +15,6 @@ class TileImage {
     }
 
     clone() {
-        return new TileImage(this.image.src, this.rotation);
+        return new TileImage(this.image.src, this.sides, this.rotation);
     }
 }
