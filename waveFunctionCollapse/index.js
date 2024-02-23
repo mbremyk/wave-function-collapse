@@ -1,13 +1,20 @@
 let lastRender = 0;
-let canvas;
 let ctx;
-const density = 20;
+let density = 20;
 let images;
 let tiles;
 const width = 800;
 const height = 800;
 let tileWidth;
 let tileHeight;
+let stop = true;
+let empty = true;
+
+// HTML objects
+let canvas;
+let btnStart;
+let btnStop;
+let btnReset;
 
 const Directions = {
     NONE: 0,
@@ -15,7 +22,7 @@ const Directions = {
     RIGHT: 2,
     DOWN: 4,
     LEFT: 8
-}
+};
 
 const TileTypes = {
     EMPTY: [0, 0, 0, 0],
@@ -25,24 +32,24 @@ const TileTypes = {
     DEAD_END: [1, 0, 0, 0],
     CROSS: [1, 1, 1, 1],
     rotate: (type, times) => {
-        if (!(Array.isArray(type) && type.length == 4 && typeof times == 'number' && times >= 0)) throw "Something wrong here";
+        if (!(Array.isArray(type) && type.length == 4 && typeof times == 'number' && times >= 0)) throw 'Something wrong here';
         return [type[type.length - 1]].concat(type.slice(0, type.length - 1));
     },
     type: t => {
-        let sum = t.reduce((p,s) => p + s, 0) == 0;
-        switch(sum) {
-            case 0: return "EMPTY";
-            case 1: return "DEAD_END";
+        let sum = t.reduce((p, s) => p + s, 0) == 0;
+        switch (sum) {
+            case 0: return 'EMPTY';
+            case 1: return 'DEAD_END';
             case 2: {
-                if(t[0]==t[2]) return "LINE";
-                return "CORNER";
+                if (t[0] == t[2]) return 'LINE';
+                return 'CORNER';
             }
-            case 3: return "T_JUNCTION";
-            case 4: return "CROSS";
-            default: return "MALFORMED";
+            case 3: return 'T_JUNCTION';
+            case 4: return 'CROSS';
+            default: return 'MALFORMED';
         }
     }
-}
+};
 
 const sideList = [
     // Empty
@@ -75,35 +82,49 @@ const sideList = [
 ];
 
 function setup() {
+    prepareFields();
+
+    prepareCanvas();
+    resetCanvas();
 
     tileWidth = width / density;
     tileHeight = height / density;
-    let topLevel = document.getElementById('topLevel');
-    canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    canvas.style = "border: 1px solid black";
-    topLevel.appendChild(canvas);
-    ctx = canvas.getContext('2d');
-    ctx.fillStyle = "grey";
-    ctx.fillRect(0, 0, 800, 800);
+
     setupImages();
     setupTiles();
 
-    canvas.addEventListener("click", startLoop);
+    canvas.addEventListener('click', handleStart);
     //window.requestAnimationFrame(loop);
 }
 
-function startLoop() {
-    canvas.removeEventListener("click", startLoop);
-    window.requestAnimationFrame(loop);
+function prepareFields() {
+    btnStart = document.getElementById('btnStart');
+    btnStop = document.getElementById('btnStop');
+    btnReset = document.getElementById('btnReset');
+    txtSeed = document.getElementById('txtSeed');
+}
+
+function prepareCanvas() {
+    let topLevel = document.getElementById('canvas');
+    canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    canvas.style = 'border: 1px solid black';
+    topLevel.appendChild(canvas);
+    ctx = canvas.getContext('2d');
+}
+
+function resetCanvas() {
+    ctx.fillStyle = 'grey';
+    ctx.fillRect(0, 0, 800, 800);
 }
 
 function loop(timestamp) {
+    if (stop || tiles.every(tile => tile.isCollapsed())) return;
     let delta = timestamp - lastRender;
     update(delta);
     draw();
-    if (tiles.some(tile => !tile.isCollapsed()))
+    if (!stop && tiles.some(tile => !tile.isCollapsed()))
         window.requestAnimationFrame(loop);
 }
 
@@ -295,6 +316,43 @@ function evaluateNeighbours(tile) {
             }
             checkNeighbours(neighbour);
         }
+    }
+}
+
+function handleStart() {
+    if (stop && tiles.some(tile => !tile.isCollapsed())) {
+        btnStart.disabled = true;
+        btnStop.disabled = false;
+        btnReset.disabled = false;
+        setSeed();
+        stop = false;
+        empty = false;
+        window.requestAnimationFrame(loop);
+    }
+}
+
+function handleStop() {
+    stop = true;
+    btnStop.disabled = true;
+    btnStart.disabled = false;
+    btnReset.disabled = false;
+}
+
+function handleReset() {
+    handleStop();
+    resetCanvas();
+    setupTiles();
+    setupImages();
+    empty = true;
+    setSeed();
+}
+
+function setSeed() {
+    if (empty) {
+        if(!isNaN(txtSeed.value) && txtSeed.value.length > 0)
+            rng = new RNG(Math.abs(parseInt(txtSeed.value)));
+        else
+            rng = new RNG();
     }
 }
 

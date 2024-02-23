@@ -3,6 +3,7 @@
 
 <head>
     <title>Wave function collapse</title>
+    <link rel='stylesheet' href='index.css'>
     <script src='image.js' type='text/javascript'></script>
     <script src='rng.js' type='text/javascript'></script>
     <script src='tile.js' type='text/javascript'></script>
@@ -10,7 +11,22 @@
 </head>
 
 <body>
-    <div id='topLevel'></div>
+    <div id='top-level'>
+        <div id='grid-container'>
+            <div id='canvas' class='grid-item'>
+
+            </div>
+            <div class='grid-item' id='tile-list'> 
+
+            </div>
+            <div class='grid-item' id='footer'>
+                <button id='btnStart' onclick='handleStart()'>Start</button>
+                <button id='btnStop' onclick='handleStop()'>Stop</button>
+                <button id='btnReset' onclick='handleReset()'>Reset</button>
+                <input id='txtSeed' type='number' oninput='setSeed()' min=0/>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
