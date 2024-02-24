@@ -19,6 +19,7 @@ let txtSeed;
 let tileList;
 let lstCheckBoxes = [];
 let txtCurrentSeed;
+let txtDensity;
 
 const Directions = {
     NONE: 0,
@@ -128,6 +129,7 @@ function prepareFields() {
     txtSeed = document.getElementById('txtSeed');
     tileList = document.getElementById('tile-list');
     txtCurrentSeed = document.getElementById('current-seed');
+    txtDensity = document.getElementById('txt-density');
 }
 
 function prepareCanvas() {
@@ -146,6 +148,7 @@ function resetCanvas() {
 }
 
 function setTileSize() {
+    density = parseInt(txtDensity.value);
     tileWidth = width / density;
     tileHeight = height / density;
 }
