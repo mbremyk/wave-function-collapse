@@ -16,14 +16,29 @@
             <div id='canvas' class='grid-item'>
 
             </div>
-            <div class='grid-item' id='tile-list'> 
+            <div class='grid-item' id='tile-list'>
+                <div>
 
+                </div>
+                <div>
+                    <div><b>U</b></div>
+                    <div><b>R</b></div>
+                    <div><b>D</b></div>
+                    <div><b>L</b></div>
+                </div>
+                <div>
+
+                </div>
             </div>
             <div class='grid-item' id='footer'>
                 <button id='btnStart' onclick='handleStart()'>Start</button>
                 <button id='btnStop' onclick='handleStop()'>Stop</button>
                 <button id='btnReset' onclick='handleReset()'>Reset</button>
-                <input id='txtSeed' type='number' oninput='setSeed()' min=0/>
+                <input id='num-density' type='number' min=1/>
+                <div id='seed-info'>
+                    <b>Seed:</b><input id='txtSeed' type='number' oninput='setSeed()' min=0 />
+                    <b>Current seed: <b id='current-seed'></b></b>
+                </div>
             </div>
         </div>
     </div>

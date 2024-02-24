@@ -15,6 +15,10 @@ let canvas;
 let btnStart;
 let btnStop;
 let btnReset;
+let txtSeed;
+let tileList;
+let lstCheckBoxes = [];
+let txtCurrentSeed;
 
 const Directions = {
     NONE: 0,
@@ -47,6 +51,24 @@ const TileTypes = {
             case 3: return 'T_JUNCTION';
             case 4: return 'CROSS';
             default: return 'MALFORMED';
+        }
+    },
+    get: s => {
+        switch (s.toUpperCase()) {
+            case 'EMPTY':
+                return EMPTY;
+            case 'DEAD_END':
+                return DEAD_END;
+            case 'LINE':
+                return LINE;
+            case 'CORNER':
+                return CORNER;
+            case 'T_JUNCTION':
+                return T_JUNCTION;
+            case 'CROSS':
+                return CROSS;
+            default:
+                return undefined;
         }
     }
 };
@@ -81,16 +103,18 @@ const sideList = [
     [1, 1, 1, 1]
 ];
 
+//const possibleValues = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+
 function setup() {
     prepareFields();
 
     prepareCanvas();
     resetCanvas();
 
-    tileWidth = width / density;
-    tileHeight = height / density;
+    setTileSize();
 
     setupImages();
+    prepareTileList();
     setupTiles();
 
     canvas.addEventListener('click', handleStart);
@@ -102,6 +126,8 @@ function prepareFields() {
     btnStop = document.getElementById('btnStop');
     btnReset = document.getElementById('btnReset');
     txtSeed = document.getElementById('txtSeed');
+    tileList = document.getElementById('tile-list');
+    txtCurrentSeed = document.getElementById('current-seed');
 }
 
 function prepareCanvas() {
@@ -109,7 +135,7 @@ function prepareCanvas() {
     canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
-    canvas.style = 'border: 1px solid black';
+    canvas.style = 'border: 1px solid #404040';
     topLevel.appendChild(canvas);
     ctx = canvas.getContext('2d');
 }
@@ -117,6 +143,42 @@ function prepareCanvas() {
 function resetCanvas() {
     ctx.fillStyle = 'grey';
     ctx.fillRect(0, 0, 800, 800);
+}
+
+function setTileSize() {
+    tileWidth = width / density;
+    tileHeight = height / density;
+}
+
+function prepareTileList() {
+    for (let image in images) {
+        let img = document.createElement('img');
+        img = images[image].image;
+        img.style.transform = `rotate(${images[image].rotation}rad)`;
+        tileList.appendChild(img);
+        let sides = document.createElement('div');
+        for (let i of images[image].sides) {
+            let side = document.createElement('input');
+            side.type = 'text';
+            side.height = '50px';
+            side.size = "2";
+            side.value = i;
+            sides.appendChild(side);
+        }
+        sides.index = image;
+        tileList.appendChild(sides);
+        let check = document.createElement('input');
+        check.type = 'checkbox';
+        check.checked = images[image].enabled;
+        check.index = image;
+        check.onchange = handleToggleTile;
+        lstCheckBoxes.push(check);
+        tileList.appendChild(check);
+    }
+}
+
+function handleToggleTile(e) {
+    images[e.target.index].enabled = e.target.checked;
 }
 
 function loop(timestamp) {
@@ -185,12 +247,22 @@ function setupImages() {
     }
 
     images.push(new TileImage(`images/${5}.png`, TileTypes.CROSS));
+
+    for (let i in lstCheckBoxes) {
+        images[i].enabled = lstCheckBoxes[i].checked;
+    }
 }
 
 function setupTiles() {
+    let possibleValues = [];
+    for (let i in images) {
+        if (images[i].enabled) {
+            possibleValues.push(parseInt(i));
+        }
+    }
     tiles = new Array(density ** 2);
     for (let i = 0; i < density ** 2; ++i) {
-        tiles[i] = new Tile(i);
+        tiles[i] = new Tile(i, possibleValues.slice());
     }
 }
 
@@ -324,6 +396,7 @@ function handleStart() {
         btnStart.disabled = true;
         btnStop.disabled = false;
         btnReset.disabled = false;
+        setTileSize();
         setSeed();
         stop = false;
         empty = false;
@@ -341,6 +414,7 @@ function handleStop() {
 function handleReset() {
     handleStop();
     resetCanvas();
+    setTileSize();
     setupTiles();
     setupImages();
     empty = true;
@@ -349,10 +423,8 @@ function handleReset() {
 
 function setSeed() {
     if (empty) {
-        if(!isNaN(txtSeed.value) && txtSeed.value.length > 0)
-            rng = new RNG(Math.abs(parseInt(txtSeed.value)));
-        else
-            rng = new RNG();
+        rng.setSeed(parseInt(txtSeed.value), true);
+        txtCurrentSeed.innerText = rng.seed;
     }
 }
 

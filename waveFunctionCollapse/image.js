@@ -1,9 +1,10 @@
 class TileImage {
-    constructor (path, sides, rotation = 0) {
+    constructor (path, sides, rotation = 0, enabled = true) {
         this.image = new Image();
         this.image.src = path;
         this.sides = sides;
         this.rotation = rotation;
+        this.enabled = enabled;
     }
 
     draw(context, x, y, width, height) {

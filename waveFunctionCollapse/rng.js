@@ -11,6 +11,7 @@ function RNG(seed) {
     this.c = 12345;
 
     this.state = typeof seed === 'number' && isFinite(seed) ? seed : Math.floor(Math.random() * (this.m - 1));
+    this.seed = this.state;
 }
 RNG.prototype.nextInt = function () {
     this.state = (this.a * this.state + this.c) % this.m;
@@ -29,6 +30,10 @@ RNG.prototype.nextRange = function (start, end) {
 };
 RNG.prototype.choice = function (array, startOffset = 0, endOffset = 0) {
     if (startOffset < 0 || endOffset < 0) throw "Offsets have to be non-negative";
-    if(startOffset + endOffset >= array.length) return undefined;
+    if (startOffset + endOffset >= array.length) return undefined;
     return array[this.nextRange(0 + startOffset, array.length - endOffset)];
+};
+RNG.prototype.setSeed = function (seed, random = false) {
+    this.state = typeof seed === 'number' && isFinite(seed) ? seed : (random ? Math.floor(Math.random() * (this.m - 1)) : this.state);
+    this.seed = this.state;
 };
