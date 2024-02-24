@@ -418,8 +418,8 @@ function handleReset() {
     handleStop();
     resetCanvas();
     setTileSize();
-    setupTiles();
     setupImages();
+    setupTiles();
     empty = true;
     setSeed();
 }
@@ -428,6 +428,14 @@ function setSeed() {
     if (empty) {
         rng.setSeed(parseInt(txtSeed.value), true);
         txtCurrentSeed.innerText = rng.seed;
+    }
+}
+
+function handleDensity() {
+    if (stop && empty) {
+        setTileSize();
+        setupImages();
+        setupTiles();
     }
 }
 
