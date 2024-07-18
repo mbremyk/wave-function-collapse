@@ -1,7 +1,7 @@
 let lastRender = 0;
 let ctx;
 let density = 20;
-let images;
+var images;
 let tiles;
 const width = 800;
 const height = 800;
@@ -9,6 +9,8 @@ let tileWidth;
 let tileHeight;
 let stop = true;
 let empty = true;
+var rng = new RNG();
+let test = false;
 
 // HTML objects
 let canvas;
@@ -266,6 +268,16 @@ function setupTiles() {
     tiles = new Array(density ** 2);
     for (let i = 0; i < density ** 2; ++i) {
         tiles[i] = new Tile(i, possibleValues.slice());
+    }
+    if(test) {
+        for(let i = 0; i < density; ++i) {
+            tiles[i].possibleValues = [0];
+            tiles[tiles.length - i - 1].possibleValues = [0];
+            tiles[i * density].possibleValues = [0];
+            tiles[tiles.length - 1 - i * density].possibleValues = [0];
+        }
+        tiles[1].possibleValues = [6];
+        tiles[tiles.length - 2].possibleValues = [6];
     }
 }
 

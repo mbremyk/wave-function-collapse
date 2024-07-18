@@ -1,5 +1,3 @@
-let rng = new RNG();
-
 class Tile {
     constructor (index, possibleValues=undefined) {
         this.index = index;
