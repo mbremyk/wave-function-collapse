@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Balls in?</title>
+    <link rel='stylesheet' href='index.css'>
+    <script src='ball.js' type='text/javascript'></script>
+    <script src='index.js' type='text/javascript'></script>
+</head>
+
+<body>
+    <div id='top-level'>
+        <div id='grid-container'>
+            <div id='canvas' class='grid-item'>
+
+            </div>
+            <div class='grid-item' id='tile-list'>
+                <div>
+
+                </div>
+                <div>
+                    <div><b>U</b></div>
+                    <div><b>R</b></div>
+                    <div><b>D</b></div>
+                    <div><b>L</b></div>
+                </div>
+                <div>
+
+                </div>
+            </div>
+            <div class='grid-item' id='footer'>
+                <button id='btnStart' onclick='handleStart()'>Start</button>
+                <button id='btnStop' onclick='handleStop()'>Stop</button>
+                <button id='btnReset' onclick='handleReset()'>Reset</button>
+                Gravity:
+                <input type="text" id="txtGravity" value="5" oninput='handleGravityText()'>
+                <input type="range" min="0" max="100" value="5" class="slider" id="sliderGravity" oninput='handleGravitySlide()'>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
